@@ -1,0 +1,6 @@
+{
+  "name": "Азат пен Сабина — Үйлену тойына шақыру",
+  "description": "Азат пен Сабинаның үйлену тойына арналған эксклюзивті интерактивті шақыру сайты",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
