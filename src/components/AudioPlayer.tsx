@@ -12,13 +12,14 @@ export default function AudioPlayer({ shouldPlay, onPlayStateChange }: AudioPlay
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [audioSrc, setAudioSrc] = useState('music.mp3');
 
   // Synchronize play state with parent request (e.g. when opening the invitation)
   useEffect(() => {
     if (shouldPlay && audioRef.current) {
       attemptPlay();
     }
-  }, [shouldPlay]);
+  }, [shouldPlay, audioSrc]);
 
   const attemptPlay = () => {
     const audio = audioRef.current;
@@ -32,10 +33,16 @@ export default function AudioPlayer({ shouldPlay, onPlayStateChange }: AudioPlay
         if (onPlayStateChange) onPlayStateChange(true);
       })
       .catch((error) => {
-        console.warn('Autoplay blocked by browser:', error);
-        setShowPrompt(true);
-        setIsPlaying(false);
-        if (onPlayStateChange) onPlayStateChange(false);
+        console.warn('Autoplay blocked or source failed:', error);
+        // If it's a real play failure and we're still on music.mp3, let's try fallback
+        if (audioSrc !== MUSIC_URL) {
+          console.log('Failing on music.mp3, falling back to MUSIC_URL...');
+          setAudioSrc(MUSIC_URL);
+        } else {
+          setShowPrompt(true);
+          setIsPlaying(false);
+          if (onPlayStateChange) onPlayStateChange(false);
+        }
       });
   };
 
@@ -67,12 +74,24 @@ export default function AudioPlayer({ shouldPlay, onPlayStateChange }: AudioPlay
     };
   }, [showPrompt, isPlaying]);
 
+  const handleAudioError = () => {
+    if (audioSrc !== MUSIC_URL) {
+      console.log('Audio source failed, switching to fallback...');
+      setAudioSrc(MUSIC_URL);
+    }
+  };
+
   return (
     <>
       {/* Hidden Audio elements (music.mp3 with fallback to MUSIC_URL) */}
-      <audio id="bgMusic" ref={audioRef} loop preload="auto">
-        <source src="music.mp3" type="audio/mpeg" />
-        <source src={MUSIC_URL} type="audio/mpeg" />
+      <audio
+        id="bgMusic"
+        ref={audioRef}
+        src={audioSrc}
+        loop
+        preload="auto"
+        onError={handleAudioError}
+      >
         Таспаны ойнату браузеріңізде қолданылмайды.
       </audio>
 
